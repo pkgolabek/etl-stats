@@ -1,0 +1,9 @@
+services:
+  spark-transform:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: transform:v1.0
+    volumes:
+      - ./data:/data
+      - ./schemas:/schemas
