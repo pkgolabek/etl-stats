@@ -1,3 +1,3 @@
-lpyspark==3.5.0
+pyspark==3.5.0
 loguru==0.7.2
 pandas==2.1.4

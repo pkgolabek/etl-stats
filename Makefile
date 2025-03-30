@@ -10,3 +10,6 @@ run-transform:
 build-image:
 	docker compose build
 
+pyspark-shell:
+	docker run --rm -it spark-transform pyspark
+
