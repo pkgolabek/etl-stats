@@ -4,12 +4,11 @@ help:
 
 default: help
 
-run-transform:
+run-transform: build-image
 	docker compose run --remove-orphans spark-transform spark-submit ./python/spark-transform.py
 
 build-image:
 	docker compose build
 
-pyspark-shell:
-	docker run --rm -it spark-transform pyspark
-
+pyspark-shell: build-image
+	docker compose run -it --rm spark-transform pyspark
