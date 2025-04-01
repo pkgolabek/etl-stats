@@ -6,7 +6,7 @@ ADD ./requirements.txt /opt/src/requirements.txt
 RUN python3 -m pip install -r /opt/src/requirements.txt
 
 ADD ./src /src
-ADD ./src/test /test
+# ADD ./src/test /test
 WORKDIR /src
 
 RUN chown -R spark:spark /src
