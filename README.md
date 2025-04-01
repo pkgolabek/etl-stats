@@ -5,6 +5,7 @@ This project contains PySpark scripts to perform basic data transformations and 
 ## Prerequisites
 
 - [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) (if running with Docker)
+- For users wanting to run scripts in pyenv required modules are in requirements.txt
 
 ## Running the ETL Process
 
