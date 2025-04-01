@@ -18,7 +18,7 @@ You can execute the transformations using the `Makefile` commands below.
 make
 ```
 
-#### Run the Data Transformation, Beginning to End
+#### Run the Whole Data Transformation Process, Beginning to End
 ```sh
 make transform
 ```
