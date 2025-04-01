@@ -1,0 +1,11 @@
+* Implement data validation, cleaning procedures, error handling
+* Target data models using your preferred dimensional modelling technique
+* Create data model diagram
+* Ingest files into target tables?
+
+* Write code for:
+	top 10 countries with the most number of customers
+	Revenue distribution by country
+	Relationship between average unit price of products and their sales volume
+	Top 3 products with the maximum unit price drop in the last month
+
