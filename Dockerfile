@@ -10,7 +10,7 @@ ADD ./src /src
 WORKDIR /src
 
 RUN chown -R spark:spark /src
-RUN chown -R spark:spark /test
+# RUN chown -R spark:spark /test
 
 USER spark
 
