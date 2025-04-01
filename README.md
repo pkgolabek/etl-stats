@@ -80,7 +80,7 @@ spark-submit ./python/ingest.py
 ## Data Model
 The transformed data is structured into a **star schema**, optimizing it for analytical queries. Below is a visual representation of the schema:
 
-![Star Schema Diagram](model.png)
+![Star Schema Diagram](model_star.png)
 
 ## TODO
 - Add error handling in `ingest.py` and `transform.py`
