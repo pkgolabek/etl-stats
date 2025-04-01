@@ -4,10 +4,10 @@ help:
 
 default: help
 
-transform: build-image
+transform: ingest
 	docker compose run --remove-orphans spark-transform spark-submit ./python/transform.py
 
-ingest: build-image
+ingest: clean build-image
 	docker compose run --remove-orphans spark-transform spark-submit ./python/ingest.py
 
 build-image:

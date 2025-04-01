@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
+from pyspark.sql import functions as F, Window as W
 from loguru import logger
 
 # SparkSession is an entrance point for all spark operations
@@ -41,13 +41,20 @@ raw_dfs = {name: load(raw_path) for (name, raw_path) in raw_paths.items()}
 
 output_dfs = {
     "customers": raw_dfs["customers"],
-    "products": raw_dfs["products"],
+    "products": (
+        raw_dfs["products"]
+        # some fields appear to be incorret, those that do are correct have description in all caps or null.
+        # so we filter for those.
+        .filter(F.col("Description").isNull() | F.col("Description").rlike("^[A-Z ]+$"))
+        # we have no information of when the price was changed, so we ballpark average for future processing.
+        .withColumn("AvgPrice", F.mean("UnitPrice").over(W.partitionBy("StockCode")))
+    ),
     "orders": raw_dfs["orders"].select("InvoiceNo", "StockCode", "CustomerID", "Quantity").distinct(),
     "invoices": raw_dfs["orders"].select("InvoiceNo", "InvoiceDate").distinct()
 }
 output_dfs["orders"] = (
     output_dfs["orders"]
-    .join(output_dfs["products"].select("StockCode", "UnitPrice"), ["StockCode"], "left")
+    .join(output_dfs["products"].select("StockCode", "AvgPrice").distinct(), ["StockCode"], "left")
     .withColumn("Value", F.col("UnitPrice")*F.col("Quantity"))
     .drop("UnitPrice")
 )
@@ -57,6 +64,7 @@ for name,df in output_dfs.items():
     df.show(5,0)
     # coalesce 1 will ensure there is only one file with data, only a good idea for small datasets.
     df.coalesce(1).write.mode("overwrite").parquet(output_paths[name])
+    df.toPandas().to_csv(output_paths[name]+".csv", header=True, index=False)
 
 logger.info("Great success! Very nice!")
 
