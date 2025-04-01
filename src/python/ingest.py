@@ -49,14 +49,19 @@ output_dfs = {
         # we have no information of when the price was changed, so we ballpark average for future processing.
         .withColumn("AvgPrice", F.mean("UnitPrice").over(W.partitionBy("StockCode")))
     ),
-    "orders": raw_dfs["orders"].select("InvoiceNo", "StockCode", "CustomerID", "Quantity").distinct(),
+    "orders": (
+        raw_dfs["orders"]
+        .select("InvoiceNo", "StockCode", "CustomerID", "Quantity")
+        .filter(F.col("Quantity") >= 0)
+        .distinct()
+    ),
     "invoices": raw_dfs["orders"].select("InvoiceNo", "InvoiceDate").distinct()
 }
 output_dfs["orders"] = (
     output_dfs["orders"]
     .join(output_dfs["products"].select("StockCode", "AvgPrice").distinct(), ["StockCode"], "left")
-    .withColumn("Value", F.col("UnitPrice")*F.col("Quantity"))
-    .drop("UnitPrice")
+    .withColumn("Value", F.col("AvgPrice")*F.col("Quantity"))
+    .drop("AvgPrice")
 )
 
 for name,df in output_dfs.items():

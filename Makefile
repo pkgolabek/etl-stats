@@ -7,7 +7,7 @@ default: help
 transform: ingest
 	docker compose run --remove-orphans spark-transform spark-submit ./python/transform.py
 
-ingest: clean build-image
+ingest: build-image
 	docker compose run --remove-orphans spark-transform spark-submit ./python/ingest.py
 
 build-image:

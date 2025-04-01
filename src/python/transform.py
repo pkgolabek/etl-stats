@@ -55,8 +55,14 @@ output_dfs = {
         ),
     "price_volume_relationship": (
         input_dfs["orders"]
-        .join(input_dfs["products"], "StockCode", "left")
-        # some win function idk
+        .join(
+            input_dfs["products"].select("StockCode", "AvgPrice").distinct(), 
+            "StockCode", 
+            "inner")
+        .select("StockCode", "AvgPrice", "Quantity")
+        .groupBy("StockCode")
+        .agg(F.sum("Quantity").alias("Quantity"), F.first("AvgPrice").alias("AvgPrice"))
+        .orderBy("AvgPrice")
     )
     # I think there is not enough information to calculate month to month drop in product price.
     # The only mention of price is in the product table, which contains no dates. We can try deriving
