@@ -1,6 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from loguru import logger
+import pandas
 
 # SparkSession is an entrance point for all spark operations
 # Spark is case insensitive by default. This will sometimes cause 
@@ -37,21 +38,32 @@ output_paths = {
 
 output_dfs = {
     "top10_country_num_customers": (
-        input_dfs["orders"]
-        .join(input_dfs["customers"], ["CustomerID"], "left")
+        input_dfs["customers"]
+        .select("Country", "CustomerID")
+        .distinct()
+        .groupBy("Country")
+        .agg(F.count("CustomerID").alias("Customers_Number"))
+        .orderBy(F.col("Customers_Number").desc())
+        .limit(10)
         ),
     "revenue_by_country": (
         input_dfs["orders"]
         .join(input_dfs["customers"], ["CustomerID"], "left")
+        .select("Country", "Value")
+        .groupBy("Country").agg(F.sum("Value").alias("Summed_Value"))
+        .orderBy(F.col("Summed_Value").desc())
         ),
     "price_volume_relationship": (
         input_dfs["orders"]
-        .join(input_dfs["products"])
-    ),
-    "top3_price_drop": (
-        input_dfs["orders"]
-        .join(input_dfs["invoices"], ["InvoiceNo"], "left")
-        )
+        .join(input_dfs["products"], "StockCode", "left")
+        # some win function idk
+    )
+    # I think there is not enough information to calculate month to month drop in product price.
+    # The only mention of price is in the product table, which contains no dates. We can try deriving
+    # order of the prices by the order of rows, or the fact that for each productId with 2 prices,
+    # one has description and the other doesnt, so the one without would probably be later, but this is
+    # not the case for all rows and there is still no indication of date. In Orders a single product 
+    # is registered as bougth over multiple months, so this is not a lead either.
 }
 
 for name,df in output_dfs.items():
@@ -59,5 +71,7 @@ for name,df in output_dfs.items():
     df.show(5,0)
     # reduce number of partitions (chunks of files) to 1. nicer for testing and small stuff.
     df.coalesce(1).write.mode("overwrite").parquet(output_paths[name])
+    # this line below is just for ease of checking the results without having to inspect parquets
+    df.toPandas().to_csv(output_paths[name]+".csv", header=True, index=False)
 
 logger.info("Great success! Very nice!")
