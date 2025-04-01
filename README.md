@@ -77,6 +77,10 @@ spark-submit ./python/ingest.py
 ├── README.md
 ```
 
-## License
-This project is open-source and available under the MIT License.
+## TODO
+- Add error handling in `ingest.py` and `transform.py`
+- Add unit tests throughout
+- Add exception tables for ingestion
+- Add StartDate and EndDate to Dimension tables
+
 
