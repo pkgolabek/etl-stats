@@ -4,11 +4,17 @@ help:
 
 default: help
 
-run-transform: build-image
-	docker compose run --remove-orphans spark-transform spark-submit ./python/spark-transform.py
+transform: build-image
+	docker compose run --remove-orphans spark-transform spark-submit ./python/transform.py
+
+ingest: build-image
+	docker compose run --remove-orphans spark-transform spark-submit ./python/ingest.py
 
 build-image:
 	docker compose build
 
 pyspark-shell: build-image
 	docker compose run -it --rm spark-transform pyspark
+
+clean:
+	rm -r ./data/output/*
