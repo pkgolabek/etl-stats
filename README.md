@@ -22,7 +22,7 @@ make
 ```sh
 make transform
 ```
-This runs the transformation script after ensuring the data has been ingested.
+This runs build image and the transformation script after ensuring the data has been ingested.
 
 #### Run the Data Ingestion Only
 ```sh
