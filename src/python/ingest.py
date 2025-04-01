@@ -52,6 +52,7 @@ output_dfs = {
     "orders": (
         raw_dfs["orders"]
         .select("InvoiceNo", "StockCode", "CustomerID", "Quantity")
+        # quantity of an item on an invoice can only be 0 or more
         .filter(F.col("Quantity") >= 0)
         .distinct()
     ),
@@ -59,6 +60,7 @@ output_dfs = {
 }
 output_dfs["orders"] = (
     output_dfs["orders"]
+    # for our facts table it would be nice to have a price of specific item and quantity
     .join(output_dfs["products"].select("StockCode", "AvgPrice").distinct(), ["StockCode"], "left")
     .withColumn("Value", F.col("AvgPrice")*F.col("Quantity"))
     .drop("AvgPrice")
@@ -69,6 +71,7 @@ for name,df in output_dfs.items():
     df.show(5,0)
     # coalesce 1 will ensure there is only one file with data, only a good idea for small datasets.
     df.coalesce(1).write.mode("overwrite").parquet(output_paths[name])
+    # this is for ease of looking at the data, should not be in the production env
     df.toPandas().to_csv(output_paths[name]+".csv", header=True, index=False)
 
 logger.info("Great success! Very nice!")

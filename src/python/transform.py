@@ -40,7 +40,6 @@ output_dfs = {
     "top10_country_num_customers": (
         input_dfs["customers"]
         .select("Country", "CustomerID")
-        .distinct()
         .groupBy("Country")
         .agg(F.count("CustomerID").alias("Customers_Number"))
         .orderBy(F.col("Customers_Number").desc())
@@ -48,12 +47,14 @@ output_dfs = {
         ),
     "revenue_by_country": (
         input_dfs["orders"]
+        # for revenue we need orders and customers
         .join(input_dfs["customers"], ["CustomerID"], "left")
         .select("Country", "Value")
         .groupBy("Country").agg(F.sum("Value").alias("Summed_Value"))
         .orderBy(F.col("Summed_Value").desc())
         ),
     "price_volume_relationship": (
+        # this should be plotted on a scatter plot
         input_dfs["orders"]
         .join(
             input_dfs["products"].select("StockCode", "AvgPrice").distinct(), 
