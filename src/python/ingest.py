@@ -55,7 +55,8 @@ output_dfs["orders"] = (
 for name,df in output_dfs.items():
     logger.info(name)
     df.show(5,0)
-    df.write.mode("overwrite").parquet(output_paths[name])
+    # coalesce 1 will ensure there is only one file with data, only a good idea for small datasets.
+    df.coalesce(1).write.mode("overwrite").parquet(output_paths[name])
 
 logger.info("Great success! Very nice!")
 

@@ -44,7 +44,10 @@ output_dfs = {
         input_dfs["orders"]
         .join(input_dfs["customers"], ["CustomerID"], "left")
         ),
-    # "price_volume_relationship": None,
+    "price_volume_relationship": (
+        input_dfs["orders"]
+        .join(input_dfs["products"])
+    ),
     "top3_price_drop": (
         input_dfs["orders"]
         .join(input_dfs["invoices"], ["InvoiceNo"], "left")
@@ -54,6 +57,7 @@ output_dfs = {
 for name,df in output_dfs.items():
     logger.info(name)
     df.show(5,0)
-    df.write.mode("overwrite").parquet(output_paths[name])
+    # reduce number of partitions (chunks of files) to 1. nicer for testing and small stuff.
+    df.coalesce(1).write.mode("overwrite").parquet(output_paths[name])
 
 logger.info("Great success! Very nice!")
