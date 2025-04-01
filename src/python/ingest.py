@@ -2,19 +2,6 @@ from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from loguru import logger
 
-'''
-* Implement data validation, cleaning procedures, error handling
-* Target data models using your preferred dimensional modelling technique
-* Create data model diagram
-* Ingest files into target tables?
-
-* Write code for:
-	top 10 countries with the most number of customers
-	Revenue distribution by country
-	Relationship between average unit price of products and their sales volume
-	Top 3 products with the maximum unit price drop in the last month
-'''
-
 # SparkSession is an entrance point for all spark operations
 # Spark is case insensitive by default. This will sometimes cause 
 # problems while reading data, as some attributes are poorly named
@@ -22,7 +9,7 @@ from loguru import logger
 # problematic while handling json files
 spark = SparkSession \
     .builder \
-    .appName("ETL Stats") \
+    .appName("ETL inestion") \
     .config("spark.sql.caseSensitive", True) \
     .getOrCreate()
 
@@ -30,26 +17,45 @@ spark = SparkSession \
 # Warn is enoug for debugging, but in normal operations we only really care 
 # for errors
 spark.sparkContext.setLogLevel("ERROR")
-data_path = "/data/input/"
+input_path = "/data/input/"
+output_path = "/data/output/warehouse/"
 
 raw_paths = {
-        "customers": data_path+"customers.csv",
-        "orders": data_path+"orders.csv",
-        "products": data_path+"products.csv"
+        "customers": input_path+"customers.csv",
+        "orders": input_path+"orders.csv",
+        "products": input_path+"products.csv"
         }
+output_paths = {
+    "customers": output_path+"customers",
+    "orders": output_path+"orders",
+    "products": output_path+"products",
+    "invoices": output_path+"invoices"
+}
 
 # the files we are provided contain a header row with names of the source columns
 # we will use them to name columns in our datasets using header=true
 load = spark.read.option("header", "true").csv
 
 # having raw datasets in dictionary makes for easier iteration over all of them
-dfs = {name: load(raw_path) for (name, raw_path) in raw_paths.items()}
+raw_dfs = {name: load(raw_path) for (name, raw_path) in raw_paths.items()}
 
-for name,df in dfs.items():
+output_dfs = {
+    "customers": raw_dfs["customers"],
+    "products": raw_dfs["products"],
+    "orders": raw_dfs["orders"].select("InvoiceNo", "StockCode", "CustomerID", "Quantity").distinct(),
+    "invoices": raw_dfs["orders"].select("InvoiceNo", "InvoiceDate").distinct()
+}
+output_dfs["orders"] = (
+    output_dfs["orders"]
+    .join(output_dfs["products"].select("StockCode", "UnitPrice"), ["StockCode"], "left")
+    .withColumn("Value", F.col("UnitPrice")*F.col("Quantity"))
+    .drop("UnitPrice")
+)
+
+for name,df in output_dfs.items():
     logger.info(name)
     df.show(5,0)
-
-
+    df.write.mode("overwrite").parquet(output_paths[name])
 
 logger.info("Great success! Very nice!")
 
